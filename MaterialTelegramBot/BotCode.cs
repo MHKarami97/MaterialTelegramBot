@@ -1,25 +1,15 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Windows;
-using System.Windows.Forms;
-using System.Windows.Input;
-using System.Windows.Media;
-using MaterialAlarm;
-using Microsoft.Win32;
-using ToastNotifications.Core;
+﻿using NetTelegramBotApi;
 using NetTelegramBotApi.Requests;
 using NetTelegramBotApi.Types;
+using System;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
-using NetTelegramBotApi;
+using System.IO;
 
 namespace MaterialTelegramBot
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    class BotCode
     {
         private const string BotToken = "520789610:AAGjxSUWUy8NXvZyybHN4uX6SOvi928w6QY";
         private static ReplyKeyboardMarkup mainMenu;
@@ -28,11 +18,8 @@ namespace MaterialTelegramBot
         private static InlineKeyboardMarkup siteOpen;
         private static InlineKeyboardMarkup UserButton;
 
-        public MainWindow()
+        private static void Main()
         {
-            InitializeComponent();
-            _vm = new ToastViewModel();
-
             siteOpen = new InlineKeyboardMarkup
             {
                 InlineKeyboard = new[] {
@@ -71,105 +58,30 @@ namespace MaterialTelegramBot
                 ResizeKeyboard = true
             };
 
-            Task.Run(RunBot);
-        }
-        private readonly ToastViewModel _vm;
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            using (RegistryKey key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true))
-            {
-                key?.SetValue("MaterialTelegramBot", "\"" + System.Windows.Forms.Application.ExecutablePath + "\"");
-            }
-
-            GetIcon1().Icon = Properties.Resources.taskbarIcon;
-            GetIcon1().Visible = true;
+            var t = Task.Run(() => RunBot(BotToken));
         }
 
-        string _lastMessage;
-        void ShowMessage(Action<string, MessageOptions> action, string name)
+        private static async Task RunBot(string accessToken)
         {
-            MessageOptions opts = new MessageOptions
-            {
-                FreezeOnMouseEnter = true,
-                UnfreezeOnMouseLeave = true,
-                ShowCloseButton = true
-            };
-            _lastMessage = $"{name}";
-            action(_lastMessage, opts);
-        }
+            var bot = new TelegramBot(accessToken);
 
-        NotifyIcon _icon = new NotifyIcon();
-
-        public NotifyIcon GetIcon1()
-        {
-            return _icon;
-        }
-
-        private void CloseBtn(object sender, RoutedEventArgs e)
-        {
-            Hide();
-        }
-
-        private void ShowSite(object sender, RoutedEventArgs e)
-        {
-            System.Diagnostics.Process.Start("https://itarfand.com");
-        }
-
-        private void MiniBtn(object sender, RoutedEventArgs e)
-        {
-            WindowState = WindowState.Minimized;
-        }
-
-        private void SelecAllAlarm(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void MoveWindow(object sender, MouseButtonEventArgs e)
-        {
-            DragMove();
-        }
-
-        private void ColorChangeToggleButton(object sender, RoutedEventArgs e)
-        {
-            var bc = new BrushConverter();
-
-            switch (ChangeColor.IsChecked)
-            {
-                case true:
-                    MainGrid.Background = (Brush)bc.ConvertFrom("#303030");
-                    TopMenu.Background = (Brush)bc.ConvertFrom("#607D8B");
-                    TopRectangle.Fill = (Brush)bc.ConvertFrom("#607D8B");
-                    ShowMessage(_vm.ShowSuccess, "Dark Theme");
-
-                    break;
-                case false:
-                    MainGrid.Background = (Brush)bc.ConvertFrom("#FAFAFA");
-                    TopMenu.Background = (Brush)bc.ConvertFrom("#512DA8");
-                    TopRectangle.Fill = (Brush)bc.ConvertFrom("#512DA8");
-                    ShowMessage(_vm.ShowInformation, "Light Theme");
-                    break;
-            }
-        }
-
-        private void AboutMe(object sender, RoutedEventArgs e)
-        {
-            
-        }
-
-        private static async Task RunBot()
-        {
-            var bot = new TelegramBot(BotToken);
             var me = await bot.MakeRequestAsync(new GetMe());
 
+            Console.WriteLine("UserName is: " + me.Username);
+
             long offset = 0;
+            var whileConut = 0;
             var whatDo = 0;
             const long adminId = 87310097;
 
             while (true)
             {
+                Console.WriteLine("in while: " + whileConut++);
+
                 var updates = await bot.MakeRequestAsync(new GetUpdates() { Offset = offset });
+
+                Console.WriteLine("in updates: " + updates.Length);
+                Console.WriteLine("------------");
 
                 foreach (var item in updates)
                 {
@@ -300,7 +212,7 @@ namespace MaterialTelegramBot
 
                                         await bot.MakeRequestAsync(req);
 
-                                        break;
+                                        break;                                   
 
                                     //************************************
                                     case string a when a.Contains("آدرس سایت"):
@@ -321,7 +233,7 @@ namespace MaterialTelegramBot
 
                                         break;
 
-
+                                   
                                     //************************************
                                     case string a when a.Contains("ربات قفل دار"):
 
@@ -342,7 +254,7 @@ namespace MaterialTelegramBot
                                             await bot.MakeRequestAsync(req);
                                         }
                                         break;
-
+                                    
                                     //************************************
                                     case string a when a.Contains("تماس با ما"):
 
@@ -365,7 +277,7 @@ namespace MaterialTelegramBot
                                         whatDo = 13;
 
                                         break;
-
+                                        
                                     //************************************
                                     case string a when a.Contains("پاسخ به پیغام ها"):
 
@@ -383,7 +295,7 @@ namespace MaterialTelegramBot
 
                                             await bot.MakeRequestAsync(req);
                                         }
-                                        break;
+                                        break;                                    
                                 }
                             }
                             else
@@ -1215,6 +1127,7 @@ namespace MaterialTelegramBot
                     }
                 }
             }
-        }
+            // ReSharper disable once FunctionNeverReturns
+        }       
     }
 }

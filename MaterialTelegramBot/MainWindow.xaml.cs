@@ -9,15 +9,12 @@ using Microsoft.Win32;
 using ToastNotifications.Core;
 using NetTelegramBotApi.Requests;
 using NetTelegramBotApi.Types;
-using System.Threading.Tasks;
 using NetTelegramBotApi;
+using System.Threading.Tasks;
 
 namespace MaterialTelegramBot
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow
+    public partial class MainWindow : Window
     {
         private const string BotToken = "520789610:AAGjxSUWUy8NXvZyybHN4uX6SOvi928w6QY";
         private static ReplyKeyboardMarkup mainMenu;
@@ -28,37 +25,6 @@ namespace MaterialTelegramBot
         {
             InitializeComponent();
             _vm = new ToastViewModel();
-
-            mainMenu = new ReplyKeyboardMarkup
-            {
-                Keyboard = new[] {
-                                    new[] { new KeyboardButton("\U0001F4C2 ابزارها \U0001F4C2") },
-                                    new[] { new KeyboardButton("\U000000A9 درباره \U000000A9"), new KeyboardButton("\U00002753 راهنما \U00002753") },
-                                    new[] { new KeyboardButton("\U0001F4DE تماس با ما \U0001F4DE") },
-                                },
-                ResizeKeyboard = true
-            };
-
-            BackToMain = new ReplyKeyboardMarkup
-            {
-                Keyboard = new[] {
-                                    new[] { new KeyboardButton("بازگشت به خانه \U0001F3E0") }
-                                },
-                ResizeKeyboard = true
-            };
-
-            AdminMenu = new ReplyKeyboardMarkup
-            {
-                Keyboard = new[] {
-                                    new[] { new KeyboardButton("\U0001F50D آمار \U0001F50D"),new KeyboardButton("\U0001F50A پیغام همگانی \U0001F50A") },
-                                    new[] {new KeyboardButton("\U0001F510 ربات قفل دار \U0001F510") ,new KeyboardButton("\U0001F511 مسدودسازی کاربر  \U0001F511") },
-                                    new[] { new KeyboardButton("\U00002714 پاسخ به پیغام ها \U00002714") },
-                                    new[] { new KeyboardButton("\U0001F3E0 بازگشت به خانه \U0001F3E0") }
-                                },
-                ResizeKeyboard = true
-            };
-
-            Task.Run(RunBot);
         }
         private readonly ToastViewModel _vm;
 
@@ -71,6 +37,37 @@ namespace MaterialTelegramBot
 
             GetIcon1().Icon = Properties.Resources.taskbarIcon;
             GetIcon1().Visible = true;
+
+            mainMenu = new ReplyKeyboardMarkup
+            {
+                Keyboard = new[] {
+                    new[] { new KeyboardButton("\U0001F4C2 ابزارها \U0001F4C2") },
+                    new[] { new KeyboardButton("\U000000A9 درباره \U000000A9"), new KeyboardButton("\U00002753 راهنما \U00002753") },
+                    new[] { new KeyboardButton("\U0001F4DE تماس با ما \U0001F4DE") },
+                },
+                ResizeKeyboard = true
+            };
+
+            BackToMain = new ReplyKeyboardMarkup
+            {
+                Keyboard = new[] {
+                    new[] { new KeyboardButton("بازگشت به خانه \U0001F3E0") }
+                },
+                ResizeKeyboard = true
+            };
+
+            AdminMenu = new ReplyKeyboardMarkup
+            {
+                Keyboard = new[] {
+                    new[] { new KeyboardButton("\U0001F50D آمار \U0001F50D"),new KeyboardButton("\U0001F50A پیغام همگانی \U0001F50A") },
+                    new[] {new KeyboardButton("\U0001F510 ربات قفل دار \U0001F510") ,new KeyboardButton("\U0001F511 مسدودسازی کاربر  \U0001F511") },
+                    new[] { new KeyboardButton("\U00002714 پاسخ به پیغام ها \U00002714") },
+                    new[] { new KeyboardButton("\U0001F3E0 بازگشت به خانه \U0001F3E0") }
+                },
+                ResizeKeyboard = true
+            };
+
+            Task.Run(RunBot);
         }
 
         string _lastMessage;

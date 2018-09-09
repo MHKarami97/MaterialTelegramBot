@@ -80,7 +80,7 @@
                         <ToggleButton
                         Cursor="Hand"
                         Style="{DynamicResource MaterialDesignHamburgerToggleButton}"
-                        Click="SHowListBtn"/>
+                        />
                         <TextBlock
                         VerticalAlignment="Center"
                         Margin="16 0 0 0">

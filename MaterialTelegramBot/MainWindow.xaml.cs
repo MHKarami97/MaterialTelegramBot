@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace MaterialTelegramBot
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
         private const string BotToken = "520789610:AAGjxSUWUy8NXvZyybHN4uX6SOvi928w6QY";
         private static ReplyKeyboardMarkup mainMenu;
@@ -83,9 +83,9 @@ namespace MaterialTelegramBot
             action(_lastMessage, opts);
         }
 
-        NotifyIcon _icon = new NotifyIcon();
+        readonly NotifyIcon _icon = new NotifyIcon();
 
-        public NotifyIcon GetIcon1()
+        private NotifyIcon GetIcon1()
         {
             return _icon;
         }
@@ -397,9 +397,8 @@ namespace MaterialTelegramBot
 
                                         var req2 = new SendMessage(toUser, item.Message.Text);
                                         await bot.MakeRequestAsync(req2);
-
-                                        whatDo = 0;
                                     }
+
                                     whatDo = 0;
                                 }
 
@@ -431,6 +430,7 @@ namespace MaterialTelegramBot
                     }
                 }
             }
+            // ReSharper disable once FunctionNeverReturns
         }
     }
 }

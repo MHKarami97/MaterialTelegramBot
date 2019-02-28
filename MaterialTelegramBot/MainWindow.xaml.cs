@@ -11,12 +11,13 @@ using NetTelegramBotApi.Requests;
 using NetTelegramBotApi.Types;
 using NetTelegramBotApi;
 using System.Threading.Tasks;
+using MaterialDesignThemes.Wpf;
 
 namespace MaterialTelegramBot
 {
     public partial class MainWindow
     {
-        private const string BotToken = "520789610:AAGjxSUWUy8NXvZyybHN4uX6SOvi928w6QY";
+        private const string BotToken = "694161845:AAGZiE8ibnqdNvmvG0wOIvidx6zXpjufzjg";
         private static ReplyKeyboardMarkup mainMenu;
         private static ReplyKeyboardMarkup BackToMain;
         private static ReplyKeyboardMarkup AdminMenu;
@@ -66,8 +67,6 @@ namespace MaterialTelegramBot
                 },
                 ResizeKeyboard = true
             };
-
-            Task.Run(RunBot);
         }
 
         string _lastMessage;
@@ -137,298 +136,328 @@ namespace MaterialTelegramBot
             }
         }
 
+        private static int _status = 0;
+
         private void AboutMe(object sender, RoutedEventArgs e)
         {
+            if (_status == 0)
+            {
+                Task.Run(RunBot);
 
+                MyIcon.Kind = PackIconKind.CloseCircleOutline;
+
+                MyIcon.ToolTip = "Stop Bot";
+
+                _status = 1;
+            }
+            else
+            {
+                MyIcon.Kind = PackIconKind.NearMe;
+
+                MyIcon.ToolTip = "Start Bot";
+
+                _status = 0;
+            }
+            
+            
         }
 
         private static async Task RunBot()
         {
-            var bot = new TelegramBot(BotToken);
-            var me = await bot.MakeRequestAsync(new GetMe());
-
-            var db = new MaterialtelegramBotdbEntities();
-
-            long offset = 0;
-            var whatDo = 0;
-            const long adminId = 87310097;
-
-            while (true)
+            try
             {
-                var updates = await bot.MakeRequestAsync(new GetUpdates() { Offset = offset });
+                var bot = new TelegramBot(BotToken);
 
-                foreach (var item in updates)
+                var me = await bot.MakeRequestAsync(new GetMe());
+                
+                var db = new MaterialtelegramBotdbEntities();
+
+                long offset = 0;
+                var whatDo = 0;
+                const long adminId = 87310097;
+
+                while (true)
                 {
-                    try
+                    var updates = await bot.MakeRequestAsync(new GetUpdates() { Offset = offset });
+
+                    foreach (var item in updates)
                     {
-                        var qGetBotUser = (from a in db.Users
-                                           where a.UserID.Equals(item.Message.Chat.Id)
-                                           select a).SingleOrDefault();
-
-                        if (qGetBotUser == null)
+                        try
                         {
-                            var TBotUser = new User
+                            var qGetBotUser = (from a in db.Users
+                                               where a.UserID.Equals(item.Message.Chat.Id)
+                                               select a).SingleOrDefault();
+
+                            if (qGetBotUser == null)
                             {
-                                UserID = item.Message.Chat.Id,
-                                FirstName = item.Message.Chat.FirstName,
-                                LastName = item.Message.Chat.LastName,
-                                UserName = item.Message.Chat.Username
-                            };
+                                var botUser = new User
+                                {
+                                    UserID = item.Message.Chat.Id,
+                                    FirstName = item.Message.Chat.FirstName,
+                                    LastName = item.Message.Chat.LastName,
+                                    UserName = item.Message.Chat.Username
+                                };
 
-                            db.Users.Add(TBotUser);
-                            db.SaveChanges();
-                        }
-
-                        offset = item.UpdateId + 1;
-
-                        var id = item.Message.Chat.Id;
-                        var userText = item.Message.Text;
-                        var from = item.Message.From;
-                        var photos = item.Message.Photo;
-                        var contact = item.Message.Contact;
-                        var location = item.Message.Location;
-                        var queryBack = item.CallbackQuery;
-
-                        var qGet = (from a in db.Settings
-                                    where a.Id.Equals(1)
-                                    select a).SingleOrDefault();
-
-                        var checkUser = new GetChatMember(qGet.Channel ?? 0, id);
-                        var isUser = await bot.MakeRequestAsync(checkUser);
-
-                        var isBotLock = false;
-                        var isUserHasAccess = false;
-
-                        if (qGet.Channel != null)
-                        {
-                            isBotLock = true;
-                            if (isUser.Status == "administrator" || isUser.Status == "member" || isUser.Status == "creator")
-                            {
-                                isUserHasAccess = true;
+                                db.Users.Add(botUser);
+                                db.SaveChanges();
                             }
-                        }
 
-                        if (item.Message.Chat.Id == adminId)
-                        {
-                            mainMenu = new ReplyKeyboardMarkup
+                            offset = item.UpdateId + 1;
+
+                            var id = item.Message.Chat.Id;
+                            var userText = item.Message.Text;
+                            var from = item.Message.From;
+                            var photos = item.Message.Photo;
+                            var contact = item.Message.Contact;
+                            var location = item.Message.Location;
+                            var queryBack = item.CallbackQuery;
+
+                            var qGet = (from a in db.Settings
+                                        where a.Id.Equals(1)
+                                        select a).SingleOrDefault();
+
+                            var checkUser = new GetChatMember(qGet.Channel ?? 0, id);
+                            var isUser = await bot.MakeRequestAsync(checkUser);
+
+                            var isBotLock = false;
+                            var isUserHasAccess = false;
+
+                            if (qGet.Channel != null)
                             {
-                                Keyboard = new[] {
+                                isBotLock = true;
+                                if (isUser.Status == "administrator" || isUser.Status == "member" || isUser.Status == "creator")
+                                {
+                                    isUserHasAccess = true;
+                                }
+                            }
+
+                            if (item.Message.Chat.Id == adminId)
+                            {
+                                mainMenu = new ReplyKeyboardMarkup
+                                {
+                                    Keyboard = new[] {
                                                                   new[] { new KeyboardButton("\U000000A9 درباره \U000000A9"), new KeyboardButton("\U00002753 راهنما \U00002753") },
                                                                   new[] { new KeyboardButton("تنظیمات مدیر \U0001F3E0") }
                                                                   },
-                                ResizeKeyboard = true
-                            };
-                        }
-                        else
-                        {
-                            mainMenu = new ReplyKeyboardMarkup
+                                    ResizeKeyboard = true
+                                };
+                            }
+                            else
                             {
-                                Keyboard = new[] {
+                                mainMenu = new ReplyKeyboardMarkup
+                                {
+                                    Keyboard = new[] {
                                                                   new[] { new KeyboardButton("\U000000A9 درباره \U000000A9"), new KeyboardButton("\U00002753 راهنما \U00002753") },
                                                                   new[] { new KeyboardButton("\U0001F4DE تماس با ما \U0001F4DE") },
                                                                   },
-                                ResizeKeyboard = true
-                            };
-                        }
+                                    ResizeKeyboard = true
+                                };
+                            }
 
-                        if ((isBotLock && isUserHasAccess) || (isBotLock == false))
-                        {
-                            if (whatDo == 0)
+                            if ((isBotLock && isUserHasAccess) || (isBotLock == false))
                             {
-                                switch (userText)
+                                if (whatDo == 0)
                                 {
-                                    case "/start":
+                                    switch (userText)
+                                    {
+                                        case "/start":
 
-                                        var req = new SendMessage(item.Message.Chat.Id, "به ربات پیام رسان خوش آمدید") { ReplyMarkup = mainMenu };
-
-                                        await bot.MakeRequestAsync(req);
-
-                                        break;
-
-                                    //************************************
-                                    case string a when a.Contains("خانه"):
-
-                                        req = new SendMessage(item.Message.Chat.Id, "خانه ربات") { ReplyMarkup = mainMenu };
-
-                                        await bot.MakeRequestAsync(req);
-
-                                        break;
-
-                                    //************************************
-                                    case string a when a.Contains("تنظیمات مدیر"):
-
-                                        req = new SendMessage(item.Message.Chat.Id, "در این بخش می توانید تنظیمات خود را اعمال کنید") { ReplyMarkup = AdminMenu };
-
-                                        await bot.MakeRequestAsync(req);
-
-                                        break;
-
-                                    //************************************
-                                    case string a when a.Contains("درباره"):
-
-                                        req = new SendMessage(item.Message.Chat.Id, "ربات سایت آی ترفند") { ReplyMarkup = BackToMain };
-
-                                        await bot.MakeRequestAsync(req);
-
-                                        break;
-
-                                    //************************************
-                                    case string a when a.Contains("راهنما"):
-
-                                        req = new SendMessage(item.Message.Chat.Id, "این روبات برای سایت آی ترفند می باشد \n" +
-                                                                                    " توسط آن می توانید کارهای محتلفی انجام بدهید")
-                                        { ReplyMarkup = BackToMain };
-
-                                        await bot.MakeRequestAsync(req);
-
-                                        break;
-
-                                    //************************************
-                                    case string a when a.Contains("ربات قفل دار"):
-
-                                        if (item.Message.Chat.Id == adminId)
-                                        {
-                                            req = new SendMessage(item.Message.Chat.Id, "لطفا آدرس کانالی که میخواهید کاربر در صورت عضو بود در آن بتواند از ربات استفاده کند را به همراه @ مانند @itarfand وارد کنید" +
-                                                                                        "\n\nاگر نمی خواهید کلمه *نه* را وارد کنید")
-                                            { ReplyMarkup = AdminMenu, ParseMode = SendMessage.ParseModeEnum.Markdown };
+                                            var req = new SendMessage(item.Message.Chat.Id, "به ربات پیام رسان خوش آمدید") { ReplyMarkup = mainMenu };
 
                                             await bot.MakeRequestAsync(req);
 
-                                            whatDo = 11;
-                                        }
-                                        else
-                                        {
-                                            req = new SendMessage(item.Message.Chat.Id, "شما مدیر نیستید") { ReplyMarkup = mainMenu };
+                                            break;
 
-                                            await bot.MakeRequestAsync(req);
-                                        }
-                                        break;
+                                        //************************************
+                                        case string a when a.Contains("خانه"):
 
-                                    //************************************
-                                    case string a when a.Contains("تماس با ما"):
-
-                                        req = new SendMessage(item.Message.Chat.Id, "لطفا پیغام خود را بفرستید. در اسرع وقت پاسخ داده خواهد شد" +
-                                            "\nنکته: پیغام خود را فقط در این پست بفرستید");
-
-                                        await bot.MakeRequestAsync(req);
-
-                                        whatDo = 12;
-
-                                        break;
-
-                                    //************************************
-                                    case string a when a.Contains("پاسخ به پیغام ها"):
-
-                                        if (item.Message.Chat.Id == adminId)
-                                        {
-                                            req = new SendMessage(item.Message.Chat.Id, "لطفا بر روی پیغام مورد نظر راست کلیک کنید و reply را انتخاب کرده و پیغام خود را بنویسید");
+                                            req = new SendMessage(item.Message.Chat.Id, "خانه ربات") { ReplyMarkup = mainMenu };
 
                                             await bot.MakeRequestAsync(req);
 
-                                            whatDo = 20;
-                                        }
-                                        else
-                                        {
-                                            req = new SendMessage(item.Message.Chat.Id, "شما مدیر نیستید") { ReplyMarkup = mainMenu };
+                                            break;
+
+                                        //************************************
+                                        case string a when a.Contains("تنظیمات مدیر"):
+
+                                            req = new SendMessage(item.Message.Chat.Id, "در این بخش می توانید تنظیمات خود را اعمال کنید") { ReplyMarkup = AdminMenu };
 
                                             await bot.MakeRequestAsync(req);
+
+                                            break;
+
+                                        //************************************
+                                        case string a when a.Contains("درباره"):
+
+                                            req = new SendMessage(item.Message.Chat.Id, "ربات سایت آی ترفند") { ReplyMarkup = BackToMain };
+
+                                            await bot.MakeRequestAsync(req);
+
+                                            break;
+
+                                        //************************************
+                                        case string a when a.Contains("راهنما"):
+
+                                            req = new SendMessage(item.Message.Chat.Id, "این روبات برای سایت آی ترفند می باشد \n" +
+                                                                                        " توسط آن می توانید کارهای محتلفی انجام بدهید")
+                                            { ReplyMarkup = BackToMain };
+
+                                            await bot.MakeRequestAsync(req);
+
+                                            break;
+
+                                        //************************************
+                                        case string a when a.Contains("ربات قفل دار"):
+
+                                            if (item.Message.Chat.Id == adminId)
+                                            {
+                                                req = new SendMessage(item.Message.Chat.Id, "لطفا آدرس کانالی که میخواهید کاربر در صورت عضو بود در آن بتواند از ربات استفاده کند را به همراه @ مانند @itarfand وارد کنید" +
+                                                                                            "\n\nاگر نمی خواهید کلمه *نه* را وارد کنید")
+                                                { ReplyMarkup = AdminMenu, ParseMode = SendMessage.ParseModeEnum.Markdown };
+
+                                                await bot.MakeRequestAsync(req);
+
+                                                whatDo = 11;
+                                            }
+                                            else
+                                            {
+                                                req = new SendMessage(item.Message.Chat.Id, "شما مدیر نیستید") { ReplyMarkup = mainMenu };
+
+                                                await bot.MakeRequestAsync(req);
+                                            }
+                                            break;
+
+                                        //************************************
+                                        case string a when a.Contains("تماس با ما"):
+
+                                            req = new SendMessage(item.Message.Chat.Id, "لطفا پیغام خود را بفرستید. در اسرع وقت پاسخ داده خواهد شد" +
+                                                "\nنکته: پیغام خود را فقط در این پست بفرستید");
+
+                                            await bot.MakeRequestAsync(req);
+
+                                            whatDo = 12;
+
+                                            break;
+
+                                        //************************************
+                                        case string a when a.Contains("پاسخ به پیغام ها"):
+
+                                            if (item.Message.Chat.Id == adminId)
+                                            {
+                                                req = new SendMessage(item.Message.Chat.Id, "لطفا بر روی پیغام مورد نظر راست کلیک کنید و reply را انتخاب کرده و پیغام خود را بنویسید");
+
+                                                await bot.MakeRequestAsync(req);
+
+                                                whatDo = 20;
+                                            }
+                                            else
+                                            {
+                                                req = new SendMessage(item.Message.Chat.Id, "شما مدیر نیستید") { ReplyMarkup = mainMenu };
+
+                                                await bot.MakeRequestAsync(req);
+                                            }
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    if (whatDo == 11)
+                                    {
+                                        var requserText = new SendMessage(item.Message.Chat.Id, userText) { ReplyMarkup = AdminMenu };
+
+                                        await bot.MakeRequestAsync(requserText);
+
+                                        try
+                                        {
+                                            var qGetLock = (from a in db.Settings
+                                                            where a.Id.Equals(1)
+                                                            select a).SingleOrDefault();
+
+                                            if (userText.Equals("نه"))
+                                            {
+                                                qGetLock.Channel = 1235;
+                                            }
+                                            else
+                                            {
+                                                qGetLock.Channel = Convert.ToInt64(userText);
+                                            }
+
+                                            db.Settings.Attach(qGetLock);
+                                            db.Entry(qGetLock).State = System.Data.Entity.EntityState.Modified;
+                                            db.SaveChanges();
                                         }
-                                        break;
+                                        catch (Exception)
+                                        {
+                                            var req = new SendMessage(item.Message.Chat.Id, "خطا") { ReplyMarkup = mainMenu };
+
+                                            await bot.MakeRequestAsync(req);
+
+                                            continue;
+                                        }
+
+                                        whatDo = 0;
+                                    }
+
+                                    else if (whatDo == 12)
+                                    {
+                                        //var requserText = new SendMessage(adminId, from + userText) { ReplyMarkup = mainMenu, ParseMode = SendMessage.ParseModeEnum.Markdown };
+
+                                        var fileId = item.Message.MessageId;
+                                        var fromUser = item.Message.From.Id;
+                                        var req2 = new ForwardMessage(adminId, fromUser, fileId);
+
+                                        //await bot.MakeRequestAsync(requserText);
+                                        await bot.MakeRequestAsync(req2);
+
+                                        whatDo = 0;
+                                    }
+
+                                    else if (whatDo == 20)
+                                    {
+                                        if (item.Message.ReplyToMessage?.Text != null)
+                                        {
+                                            var toUser = item.Message.ReplyToMessage.ForwardFrom.Id;
+
+                                            var req2 = new SendMessage(toUser, item.Message.Text);
+                                            await bot.MakeRequestAsync(req2);
+                                        }
+
+                                        whatDo = 0;
+                                    }
+
+                                    else
+                                    {
+                                        var req3 = new SendMessage(item.Message.Chat.Id, "لطفا ابزار مورد نظر خود را انتخاب کنید") { ReplyMarkup = mainMenu };
+
+                                        await bot.MakeRequestAsync(req3);
+                                    }
                                 }
                             }
                             else
                             {
-                                if (whatDo == 11)
-                                {
-                                    var requserText = new SendMessage(item.Message.Chat.Id, userText) { ReplyMarkup = AdminMenu };
+                                var req = new SendMessage(item.Message.Chat.Id, "برای استفاده از این ربات ابتدا باید در کانال @itarfand عضو شوید");
 
-                                    await bot.MakeRequestAsync(requserText);
-
-                                    try
-                                    {
-                                        var qGetLock = (from a in db.Settings
-                                                        where a.Id.Equals(1)
-                                                        select a).SingleOrDefault();
-
-                                        if (userText.Equals("نه"))
-                                        {
-                                            qGetLock.Channel = 1235;
-                                        }
-                                        else
-                                        {
-                                            qGetLock.Channel = Convert.ToInt64(userText);
-                                        }
-
-                                        db.Settings.Attach(qGetLock);
-                                        db.Entry(qGetLock).State = System.Data.Entity.EntityState.Modified;
-                                        db.SaveChanges();
-                                    }
-                                    catch (Exception)
-                                    {
-                                        var req = new SendMessage(item.Message.Chat.Id, "خطا") { ReplyMarkup = mainMenu };
-
-                                        await bot.MakeRequestAsync(req);
-
-                                        continue;
-                                    }
-
-                                    whatDo = 0;
-                                }
-
-                                else if (whatDo == 12)
-                                {
-                                    //var requserText = new SendMessage(adminId, from + userText) { ReplyMarkup = mainMenu, ParseMode = SendMessage.ParseModeEnum.Markdown };
-
-                                    var fileId = item.Message.MessageId;
-                                    var fromUser = item.Message.From.Id;
-                                    var req2 = new ForwardMessage(adminId, fromUser, fileId);
-
-                                    //await bot.MakeRequestAsync(requserText);
-                                    await bot.MakeRequestAsync(req2);
-
-                                    whatDo = 0;
-                                }
-
-                                else if (whatDo == 20)
-                                {
-                                    if (item.Message.ReplyToMessage?.Text != null)
-                                    {
-                                        var toUser = item.Message.ReplyToMessage.ForwardFrom.Id;
-
-                                        var req2 = new SendMessage(toUser, item.Message.Text);
-                                        await bot.MakeRequestAsync(req2);
-                                    }
-
-                                    whatDo = 0;
-                                }
-
-                                else
-                                {
-                                    var req3 = new SendMessage(item.Message.Chat.Id, "لطفا ابزار مورد نظر خود را انتخاب کنید") { ReplyMarkup = mainMenu };
-
-                                    await bot.MakeRequestAsync(req3);
-                                }
+                                await bot.MakeRequestAsync(req);
                             }
                         }
-                        else
+
+                        catch (Exception)
                         {
-                            var req = new SendMessage(item.Message.Chat.Id, "برای استفاده از این ربات ابتدا باید در کانال @itarfand عضو شوید");
+                            var req = new SendMessage(item.Message.Chat.Id, "خطا") { ReplyMarkup = mainMenu };
 
                             await bot.MakeRequestAsync(req);
+
+                            whatDo = 0;
+
+                            break;
                         }
                     }
-
-                    catch (Exception)
-                    {
-                        var req = new SendMessage(item.Message.Chat.Id, "خطا") { ReplyMarkup = mainMenu };
-
-                        await bot.MakeRequestAsync(req);
-
-                        whatDo = 0;
-
-                        break;
-                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
             }
             // ReSharper disable once FunctionNeverReturns
         }

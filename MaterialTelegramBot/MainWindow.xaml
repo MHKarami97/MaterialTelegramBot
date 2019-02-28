@@ -36,9 +36,11 @@
                 materialDesign:ShadowAssist.ShadowDepth="Depth3" Height="Auto" Width="Auto"
                 Click="AboutMe">
                 <materialDesign:PackIcon
-                    Kind="Alarm"
+                    Kind="NearMe"
+                    x:Name="MyIcon"
                     Height="30"
-                    Width="30" />
+                    Width="30"
+                    ToolTip="Start Bot"/>
             </Button>
             <materialDesign:ColorZone
             Mode="PrimaryDark"
